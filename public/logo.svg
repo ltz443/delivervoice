@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" fill="none">
+  <!-- Phone icon -->
+  <rect x="4" y="8" width="28" height="32" rx="6" stroke="#1A56DB" stroke-width="2.5" fill="#EBF5FF"/>
+  <circle cx="18" cy="34" r="2.5" fill="#1A56DB"/>
+  <rect x="12" y="13" width="12" height="14" rx="2" fill="#1A56DB" opacity="0.2"/>
+  <!-- Sound waves -->
+  <path d="M36 18 C40 14, 40 34, 36 30" stroke="#1A56DB" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <path d="M40 14 C46 8, 46 40, 40 34" stroke="#1A56DB" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.6"/>
+  <path d="M44 10 C52 2, 52 46, 44 38" stroke="#1A56DB" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.3"/>
+  <!-- Text -->
+  <text x="56" y="22" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="700" fill="#111827">Deliver</text>
+  <text x="120" y="22" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="700" fill="#1A56DB">Voice</text>
+  <text x="56" y="38" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="400" fill="#6B7280">Appels automatisés</text>
+</svg>
