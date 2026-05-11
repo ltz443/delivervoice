@@ -5,15 +5,7 @@ import { Package, CheckCircle, Users, Phone } from 'lucide-react'
 import StatCard from '@/components/admin/StatCard'
 import DriverTable from '@/components/admin/DriverTable'
 import { supabase } from '@/lib/supabase'
-
-interface DriverSession {
-  id: string
-  prenom: string
-  nom: string
-  livraisons_total: number
-  livraisons_livrees: number
-  appels_passes: number
-}
+import { DriverSession } from '@/lib/types'
 
 export default function AdminDashboardPage() {
   const [livraisonsTotal, setLivraisonsTotal] = useState(0)
@@ -26,7 +18,6 @@ export default function AdminDashboardPage() {
     const fetchStats = async () => {
       const today = new Date().toISOString().split('T')[0]
 
-      // Total livraisons du jour
       const { data: livraisons } = await supabase
         .from('livraisons')
         .select('*')
@@ -37,7 +28,6 @@ export default function AdminDashboardPage() {
         setLivraisonsLivrees(livraisons.filter((l) => l.statut === 'livre').length)
       }
 
-      // Drivers actifs
       const { data: drivers } = await supabase
         .from('users')
         .select('*')
@@ -46,7 +36,6 @@ export default function AdminDashboardPage() {
 
       if (drivers) setDriversActifs(drivers.length)
 
-      // Appels du jour
       const { data: appels } = await supabase
         .from('appels')
         .select('*')
@@ -54,16 +43,20 @@ export default function AdminDashboardPage() {
 
       if (appels) setAppelsTotal(appels.length)
 
-      // Sessions drivers
       if (drivers && livraisons) {
-        const sessions = drivers.map((driver) => {
+        const sessions: DriverSession[] = drivers.map((driver) => {
           const driverLivraisons = livraisons.filter((l) => l.driver_id === driver.id)
           return {
-            id: driver.id,
-            prenom: driver.prenom,
-            nom: driver.nom,
+            driver: {
+              id: driver.id,
+              email: driver.email,
+              prenom: driver.prenom,
+              nom: driver.nom,
+              role: driver.role,
+            },
+            connecte_depuis: driver.derniere_connexion ?? new Date().toISOString(),
             livraisons_total: driverLivraisons.length,
-            livraisons_livrees: driverLivraisons.filter((l) => l.statut === 'livre').length,
+            livraisons_effectuees: driverLivraisons.filter((l) => l.statut === 'livre').length,
             appels_passes: appels?.filter((a) => a.driver_id === driver.id).length ?? 0,
           }
         })
