@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { LogOut } from 'lucide-react'
 import Logo from '@/components/shared/Logo'
 import { Button } from '@/components/ui/button'
+import { supabase } from '@/lib/supabase'
 
 interface HeaderProps {
   prenom: string
@@ -20,7 +21,8 @@ export default function Header({
 }: HeaderProps) {
   const router = useRouter()
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
     router.push('/login')
   }
 
