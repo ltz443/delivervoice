@@ -1,9 +1,8 @@
-// hooks/useAuth.ts
 'use client'
 
 import { useState, useCallback } from 'react'
+import { supabase } from '@/lib/supabase'
 import { User } from '@/lib/types'
-import { mockDriver, mockAdmin } from '@/data/mockData'
 
 interface AuthState {
   user: User | null
@@ -18,55 +17,62 @@ export function useAuth() {
     error: null,
   })
 
-  const login = useCallback(
-    async (
-      email: string,
-      password: string
-    ): Promise<{ redirectTo: string } | null> => {
-      setAuthState((prev) => ({ ...prev, isLoading: true, error: null }))
+  const login = useCallback(async (
+    email: string,
+    password: string
+  ): Promise<{ redirectTo: string } | null> => {
+    setAuthState((prev) => ({ ...prev, isLoading: true, error: null }))
 
-      // Simuler un délai réseau
-      await new Promise((resolve) => setTimeout(resolve, 800))
+    if (!email || !password) {
+      setAuthState((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: 'Email et mot de passe obligatoires',
+      }))
+      return null
+    }
 
-      if (!password) {
-        setAuthState((prev) => ({
-          ...prev,
-          isLoading: false,
-          error: 'Le mot de passe est obligatoire',
-        }))
-        return null
-      }
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
 
-      if (!email) {
-        setAuthState((prev) => ({
-          ...prev,
-          isLoading: false,
-          error: "L'email est obligatoire",
-        }))
-        return null
-      }
+    if (error || !data.user) {
+      setAuthState((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: 'Email ou mot de passe incorrect',
+      }))
+      return null
+    }
 
-      // Mock login : email contient 'admin' → admin, sinon → driver
-      if (email.includes('admin')) {
-        setAuthState({
-          user: mockAdmin,
-          isLoading: false,
-          error: null,
-        })
-        return { redirectTo: '/admin/dashboard' }
-      } else {
-        setAuthState({
-          user: mockDriver,
-          isLoading: false,
-          error: null,
-        })
-        return { redirectTo: '/driver/livraisons' }
-      }
-    },
-    []
-  )
+    // Récupérer le profil depuis la table users
+    const { data: profile } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', data.user.id)
+      .single()
 
-  const logout = useCallback(() => {
+    if (!profile) {
+      setAuthState((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: 'Profil introuvable, contactez un administrateur',
+      }))
+      return null
+    }
+
+    setAuthState({ user: profile, isLoading: false, error: null })
+
+    return {
+      redirectTo: profile.role === 'admin'
+        ? '/admin/dashboard'
+        : '/driver/livraisons',
+    }
+  }, [])
+
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut()
     setAuthState({ user: null, isLoading: false, error: null })
   }, [])
 
