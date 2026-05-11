@@ -8,14 +8,19 @@ export async function middleware(req: NextRequest) {
 
   const { data: { session } } = await supabase.auth.getSession()
 
-  // Pas connecté → redirige vers /login
+  // Si l'utilisateur n'est pas connecté, on redirige vers /login
   if (!session) {
-    return NextResponse.redirect(new URL('/login', req.url))
+    const redirectUrl = req.nextUrl.clone()
+    redirectUrl.pathname = '/login'
+    // Optionnel : on peut ajouter l'URL actuelle en paramètre pour rediriger après login
+    // redirectUrl.searchParams.set('redirectedFrom', req.nextUrl.pathname)
+    return NextResponse.redirect(redirectUrl)
   }
 
   return res
 }
 
 export const config = {
+  // Les routes protégées (Driver et Admin)
   matcher: ['/driver/:path*', '/admin/:path*'],
 }
