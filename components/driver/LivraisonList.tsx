@@ -4,10 +4,6 @@ import { StatutLivraison } from '@/lib/types'
 import { useLivraisons } from '@/hooks/useLivraisons'
 import LivraisonCard from '@/components/driver/LivraisonCard'
 
-interface LivraisonListProps {
-  driverId: string
-}
-
 type FiltreOption = {
   value: 'tous' | StatutLivraison
   label: string
@@ -20,9 +16,9 @@ const filtres: FiltreOption[] = [
   { value: 'livre', label: 'Livrés' },
 ]
 
-export default function LivraisonList({ driverId }: LivraisonListProps) {
+export default function LivraisonList() {
   const { livraisons, filtre, setFiltre, livraisonsRestantes, updateStatut } =
-    useLivraisons(driverId)
+    useLivraisons()
 
   const today = new Date().toLocaleDateString('fr-FR', {
     weekday: 'long',
@@ -33,7 +29,6 @@ export default function LivraisonList({ driverId }: LivraisonListProps) {
 
   return (
     <div className="mx-auto max-w-2xl">
-      {/* Titre + date */}
       <div className="mb-1">
         <h1 className="text-2xl font-bold text-[#111827]">
           Mes Livraisons du jour
@@ -41,7 +36,6 @@ export default function LivraisonList({ driverId }: LivraisonListProps) {
         <p className="text-sm capitalize text-[#6B7280]">{today}</p>
       </div>
 
-      {/* Compteur */}
       <p className="mb-4 text-base text-[#6B7280]">
         <span className="font-semibold text-[#111827]">
           {livraisonsRestantes}
@@ -50,7 +44,6 @@ export default function LivraisonList({ driverId }: LivraisonListProps) {
         {livraisonsRestantes > 1 ? 's' : ''}
       </p>
 
-      {/* Filtres */}
       <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
         {filtres.map((f) => (
           <button
@@ -67,7 +60,6 @@ export default function LivraisonList({ driverId }: LivraisonListProps) {
         ))}
       </div>
 
-      {/* Liste de cartes */}
       <div className="space-y-3">
         {livraisons.length === 0 ? (
           <div className="rounded-xl bg-white p-8 text-center shadow-sm">
