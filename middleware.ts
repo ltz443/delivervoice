@@ -1,26 +1,16 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
+  const token = req.cookies.get('sb-pyzdzssqvwzsgmpasfgg-auth-token')
 
-  const { data: { session } } = await supabase.auth.getSession()
-
-  // Si l'utilisateur n'est pas connecté, on redirige vers /login
-  if (!session) {
-    const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = '/login'
-    // Optionnel : on peut ajouter l'URL actuelle en paramètre pour rediriger après login
-    // redirectUrl.searchParams.set('redirectedFrom', req.nextUrl.pathname)
-    return NextResponse.redirect(redirectUrl)
+  if (!token) {
+    return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  return res
+  return NextResponse.next()
 }
 
 export const config = {
-  // Les routes protégées (Driver et Admin)
   matcher: ['/driver/:path*', '/admin/:path*'],
 }
