@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import twilio from 'twilio'
-import { supabaseAdmin } from '@/lib/supabase-admin'
 
 export async function POST(req: NextRequest) {
   try {
-    const { livraison_id, client_telephone, driver_id } = await req.json()
+    const { client_telephone } = await req.json()
 
     console.log('SID:', process.env.TWILIO_ACCOUNT_SID?.slice(0, 6))
     console.log('TOKEN:', process.env.TWILIO_AUTH_TOKEN?.slice(0, 6))
     console.log('FROM:', process.env.TWILIO_PHONE_NUMBER)
     console.log('TO:', client_telephone)
 
-    if (!livraison_id || !client_telephone || !driver_id) {
-      return NextResponse.json({ error: 'Paramètres manquants' }, { status: 400 })
+    if (!client_telephone) {
+      return NextResponse.json({ error: 'Paramètre client_telephone manquant' }, { status: 400 })
     }
 
     const client = twilio(
@@ -32,19 +31,6 @@ export async function POST(req: NextRequest) {
       to: client_telephone,
       from: process.env.TWILIO_PHONE_NUMBER!,
     })
-
-    await supabaseAdmin.from('appels').insert({
-      livraison_id,
-      driver_id,
-      type_appel: 'premier_appel',
-      statut_appel: 'repondu',
-      twilio_call_sid: call.sid,
-    })
-
-    await supabaseAdmin
-      .from('livraisons')
-      .update({ statut: 'appele' })
-      .eq('id', livraison_id)
 
     return NextResponse.json({ success: true, call_sid: call.sid })
 
