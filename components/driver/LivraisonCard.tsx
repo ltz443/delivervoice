@@ -69,7 +69,10 @@ export default function LivraisonCard({
 
       <div className="mt-4 space-y-3">
         {showAppelButton && (
-          <AppelButton onAppelComplete={handleAppelComplete} />
+          <AppelButton
+            livraison={livraison}
+            onAppelComplete={handleAppelComplete}
+          />
         )}
         {showLivreButton && (
           <button
