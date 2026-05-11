@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
-import { MapPin, CheckCircle } from 'lucide-react'
+import { MapPin, Phone, CheckCircle } from 'lucide-react'
 import { Livraison, StatutLivraison } from '@/lib/types'
 import StatutBadge from '@/components/shared/Badge'
 import AppelButton from '@/components/driver/AppelButton'
@@ -42,7 +42,6 @@ export default function LivraisonCard({
     <div
       className={`rounded-xl border-l-4 bg-white p-4 shadow-sm ${borderColors[livraison.statut]}`}
     >
-      {/* Header : numéro + badge */}
       <div className="mb-2 flex items-center justify-between">
         <span className="text-sm text-[#6B7280]">
           #{String(index + 1).padStart(3, '0')}
@@ -50,23 +49,24 @@ export default function LivraisonCard({
         <StatutBadge statut={livraison.statut} />
       </div>
 
-      {/* Nom client */}
       <h3 className="text-lg font-semibold text-[#111827]">
         {livraison.client_prenom} {livraison.client_nom}
       </h3>
 
-      {/* Adresse */}
       <div className="mt-1 flex items-start gap-1.5">
         <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#6B7280]" />
         <p className="text-base text-[#6B7280]">{livraison.adresse}</p>
       </div>
 
-      {/* Heure prévue */}
+      <div className="mt-1 flex items-center gap-1.5">
+        <Phone className="h-4 w-4 shrink-0 text-[#6B7280]" />
+        <p className="text-sm text-[#6B7280]">{livraison.client_telephone}</p>
+      </div>
+
       <p className="mt-1 text-sm text-[#6B7280]">
         Heure prévue : {livraison.heure_prevue}
       </p>
 
-      {/* Boutons */}
       <div className="mt-4 space-y-3">
         {showAppelButton && (
           <AppelButton onAppelComplete={handleAppelComplete} />
