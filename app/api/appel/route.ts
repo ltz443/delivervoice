@@ -2,18 +2,23 @@ import { NextRequest, NextResponse } from 'next/server'
 import twilio from 'twilio'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
-const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-)
-
 export async function POST(req: NextRequest) {
   try {
     const { livraison_id, client_telephone, driver_id } = await req.json()
 
+    console.log('SID:', process.env.TWILIO_ACCOUNT_SID?.slice(0, 6))
+    console.log('TOKEN:', process.env.TWILIO_AUTH_TOKEN?.slice(0, 6))
+    console.log('FROM:', process.env.TWILIO_PHONE_NUMBER)
+    console.log('TO:', client_telephone)
+
     if (!livraison_id || !client_telephone || !driver_id) {
       return NextResponse.json({ error: 'Paramètres manquants' }, { status: 400 })
     }
+
+    const client = twilio(
+      process.env.TWILIO_ACCOUNT_SID,
+      process.env.TWILIO_AUTH_TOKEN
+    )
 
     const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
