@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Twilio from 'twilio'
+import twilio from 'twilio'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
-const client = new Twilio(
+const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 )
@@ -17,8 +17,8 @@ export async function POST(req: NextRequest) {
 
     const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say language="fr-FR" voice="Polly.Celine">
-    Bonjour, votre livreur sera en bas de chez vous dans 2 minutes. Merci.
+  <Say language="fr-FR">
+    Bonjour, votre livreur sera en bas de chez vous dans deux minutes. Merci.
   </Say>
 </Response>`
 
@@ -28,7 +28,6 @@ export async function POST(req: NextRequest) {
       from: process.env.TWILIO_PHONE_NUMBER!,
     })
 
-    // Enregistrer l'appel dans Supabase
     await supabaseAdmin.from('appels').insert({
       livraison_id,
       driver_id,
@@ -37,7 +36,6 @@ export async function POST(req: NextRequest) {
       twilio_call_sid: call.sid,
     })
 
-    // Mettre à jour le statut de la livraison
     await supabaseAdmin
       .from('livraisons')
       .update({ statut: 'appele' })
@@ -47,6 +45,6 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('Erreur appel Twilio:', error)
-    return NextResponse.json({ error: 'Erreur lors de l\'appel' }, { status: 500 })
+    return NextResponse.json({ error: String(error) }, { status: 500 })
   }
 }
