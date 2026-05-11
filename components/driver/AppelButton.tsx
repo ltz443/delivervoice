@@ -2,15 +2,18 @@
 
 import { useState, useCallback } from 'react'
 import { Loader2, Phone, Clock, Check } from 'lucide-react'
+import { Livraison } from '@/lib/types'
 
 type AppelStatut = 'default' | 'loading' | 'appele' | 'termine'
 
 interface AppelButtonProps {
+  livraison: Livraison
   onAppelComplete: () => void
   disabled?: boolean
 }
 
 export default function AppelButton({
+  livraison,
   onAppelComplete,
   disabled = false,
 }: AppelButtonProps) {
@@ -23,28 +26,37 @@ export default function AppelButton({
     setStatut('loading')
     setCooldown(true)
 
-    // TODO: appeler lib/twilio.ts quand backend prêt
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setStatut('appele')
-    onAppelComplete()
+    try {
+      const res = await fetch('/api/appel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          livraison_id: livraison.id,
+          client_telephone: livraison.client_telephone,
+          driver_id: livraison.driver_id,
+        }),
+      })
 
-    // Désactiver le bouton 3 secondes après le clic pour éviter les doubles appels
-    setTimeout(() => setCooldown(false), 3000)
+      if (!res.ok) throw new Error('Erreur API')
 
-    // Simuler le rappel automatique après 3 min
-    setTimeout(() => setStatut('termine'), 180000)
-  }, [statut, cooldown, disabled, onAppelComplete])
-
-  const config: Record<
-    AppelStatut,
-    {
-      bg: string
-      text: string
-      label: string
-      icon: React.ReactNode
-      clickable: boolean
+      setStatut('appele')
+      onAppelComplete()
+    } catch (error) {
+      console.error('Erreur appel:', error)
+      setStatut('default')
     }
-  > = {
+
+    setTimeout(() => setCooldown(false), 3000)
+    setTimeout(() => setStatut('termine'), 180000)
+  }, [statut, cooldown, disabled, livraison, onAppelComplete])
+
+  const config: Record<AppelStatut, {
+    bg: string
+    text: string
+    label: string
+    icon: React.ReactNode
+    clickable: boolean
+  }> = {
     default: {
       bg: 'bg-[#1A56DB] hover:bg-[#1E429F] active:bg-[#1E429F]',
       text: 'text-white',
