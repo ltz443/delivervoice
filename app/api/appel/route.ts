@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import twilio from 'twilio'
+import Twilio from 'twilio'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
-const client = twilio(
+const client = new Twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 )
