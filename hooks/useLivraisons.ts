@@ -1,34 +1,69 @@
-// hooks/useLivraisons.ts
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { Livraison, StatutLivraison } from '@/lib/types'
-import { mockLivraisons } from '@/data/mockData'
+import { supabase } from '@/lib/supabase'
 
 type FiltreStatut = 'tous' | StatutLivraison
 
 export function useLivraisons(driverId?: string) {
-  const [livraisons, setLivraisons] = useState<Livraison[]>(mockLivraisons)
+  const [livraisons, setLivraisons] = useState<Livraison[]>([])
   const [filtre, setFiltre] = useState<FiltreStatut>('tous')
+  const [isLoading, setIsLoading] = useState(true)
 
-  const livraisonsDriver = useMemo(() => {
-    const filtered = driverId
-      ? livraisons.filter((l) => l.driver_id === driverId)
-      : livraisons
+  const fetchLivraisons = useCallback(async () => {
+    if (!driverId) return
+    setIsLoading(true)
 
-    if (filtre === 'tous') return filtered
-    return filtered.filter((l) => l.statut === filtre)
-  }, [livraisons, driverId, filtre])
+    const today = new Date().toISOString().split('T')[0]
+
+    const { data, error } = await supabase
+      .from('livraisons')
+      .select('*')
+      .eq('driver_id', driverId)
+      .eq('date_livraison', today)
+      .order('heure_prevue', { ascending: true })
+
+    if (!error && data) {
+      setLivraisons(data as Livraison[])
+    }
+    setIsLoading(false)
+  }, [driverId])
+
+  useEffect(() => {
+    fetchLivraisons()
+
+    // Realtime — mise à jour automatique si un statut change
+    const channel = supabase
+      .channel('livraisons_realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'livraisons' },
+        () => fetchLivraisons()
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [fetchLivraisons])
+
+  const livraisonsFiltered = useMemo(() => {
+    if (filtre === 'tous') return livraisons
+    return livraisons.filter((l) => l.statut === filtre)
+  }, [livraisons, filtre])
 
   const livraisonsRestantes = useMemo(() => {
-    const driverLivraisons = driverId
-      ? livraisons.filter((l) => l.driver_id === driverId)
-      : livraisons
-    return driverLivraisons.filter((l) => l.statut !== 'livre').length
-  }, [livraisons, driverId])
+    return livraisons.filter((l) => l.statut !== 'livre').length
+  }, [livraisons])
 
   const updateStatut = useCallback(
-    (livraisonId: string, nouveauStatut: StatutLivraison) => {
+    async (livraisonId: string, nouveauStatut: StatutLivraison) => {
+      await supabase
+        .from('livraisons')
+        .update({ statut: nouveauStatut })
+        .eq('id', livraisonId)
+
       setLivraisons((prev) =>
         prev.map((l) =>
           l.id === livraisonId ? { ...l, statut: nouveauStatut } : l
@@ -39,10 +74,11 @@ export function useLivraisons(driverId?: string) {
   )
 
   return {
-    livraisons: livraisonsDriver,
+    livraisons: livraisonsFiltered,
     filtre,
     setFiltre,
     livraisonsRestantes,
     updateStatut,
+    isLoading,
   }
 }
