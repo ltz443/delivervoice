@@ -50,6 +50,14 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('Erreur appel Twilio:', error)
-    return NextResponse.json({ error: String(error) }, { status: 500 })
+    const errMsg = error instanceof Error ? error.message : String(error)
+    const errCode = (error as any)?.code
+    const errStatus = (error as any)?.status
+    return NextResponse.json({
+      error: errMsg,
+      code: errCode,
+      status: errStatus,
+      more: JSON.stringify(error)
+    }, { status: 500 })
   }
 }
