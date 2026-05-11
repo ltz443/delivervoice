@@ -1,12 +1,11 @@
-// lib/supabase.ts
-// Placeholder — ne pas configurer pour l'instant
-// Sera connecté à Supabase quand le backend sera prêt
+import { createClient } from '@supabase/supabase-js'
 
-// import { createClient } from '@supabase/supabase-js'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-// const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
-// const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// export const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
-export {}
+export const supabaseAdmin = createClient(
+  supabaseUrl,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
