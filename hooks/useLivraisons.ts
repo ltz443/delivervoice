@@ -6,21 +6,23 @@ import { supabase } from '@/lib/supabase'
 
 type FiltreStatut = 'tous' | StatutLivraison
 
-export function useLivraisons(driverId?: string) {
+export function useLivraisons() {
   const [livraisons, setLivraisons] = useState<Livraison[]>([])
   const [filtre, setFiltre] = useState<FiltreStatut>('tous')
   const [isLoading, setIsLoading] = useState(true)
 
   const fetchLivraisons = useCallback(async () => {
-    if (!driverId) return
     setIsLoading(true)
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
 
     const today = new Date().toISOString().split('T')[0]
 
     const { data, error } = await supabase
       .from('livraisons')
       .select('*')
-      .eq('driver_id', driverId)
+      .eq('driver_id', session.user.id)
       .eq('date_livraison', today)
       .order('heure_prevue', { ascending: true })
 
@@ -28,12 +30,11 @@ export function useLivraisons(driverId?: string) {
       setLivraisons(data as Livraison[])
     }
     setIsLoading(false)
-  }, [driverId])
+  }, [])
 
   useEffect(() => {
     fetchLivraisons()
 
-    // Realtime — mise à jour automatique si un statut change
     const channel = supabase
       .channel('livraisons_realtime')
       .on(
