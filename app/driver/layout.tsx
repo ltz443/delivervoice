@@ -9,20 +9,31 @@ export default function DriverLayout({ children }: { children: React.ReactNode }
   const [nom, setNom] = useState('')
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) return
+    const fetchProfile = async (userId: string) => {
       const { data } = await supabase
         .from('users')
         .select('prenom, nom')
-        .eq('id', session.user.id)
+        .eq('id', userId)
         .single()
       if (data) {
         setPrenom(data.prenom)
         setNom(data.nom)
       }
     }
-    fetchUser()
+
+    // Vérifier la session immédiatement
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) fetchProfile(session.user.id)
+    })
+
+    // Écouter les changements d'auth
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (session) fetchProfile(session.user.id)
+      }
+    )
+
+    return () => subscription.unsubscribe()
   }, [])
 
   return (
